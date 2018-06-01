@@ -1,6 +1,7 @@
 import pandas
 from sklearn import model_selection
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
@@ -28,9 +29,21 @@ models = [('LR', LogisticRegression()), ('LDA', LinearDiscriminantAnalysis()), (
 
 results, names = [], []
 
+print("Training results mean and standard deviation: ")
 for name, model in models:
     kfold = model_selection.KFold(n_splits=10, random_state=seed)
     cv_results = model_selection.cross_val_score(model, X_train, y_train, cv=kfold)
     results.append(cv_results)
     names.append(name)
     print("{}: {} ({})".format(name, cv_results.mean(), cv_results.std()))
+
+
+# Make predictions on validation dataset
+knn = KNeighborsClassifier()
+knn.fit(X_train, y_train)
+predictions = knn.predict(X_test)
+print("\nAccuracy of the KNN model: {}".format(accuracy_score(y_test, predictions)))
+print("\nConfusion matrix: ")
+print(confusion_matrix(y_test, predictions))
+print("\nClassification report: ")
+print(classification_report(y_test, predictions))
