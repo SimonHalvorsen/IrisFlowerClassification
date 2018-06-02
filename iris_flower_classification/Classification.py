@@ -8,13 +8,52 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
+
+def train_models():
+
+    """
+    Trains the models on test sets using 10-fold cross validation
+    Calculates a score for each model
+    Prints mean and standard deviation for the score
+    """
+
+    print("Training results mean and standard deviation: ")
+    for name, model in models:
+        kfold = model_selection.KFold(n_splits=10, random_state=seed)  # 10-fold cross validation
+        cv_results = model_selection.cross_val_score(model, X_train, y_train, cv=kfold)
+        training_results.append(cv_results)
+        names.append(name)
+        print("{}: {} ({})".format(name, cv_results.mean(), cv_results.std()))
+
+
+def test_models():
+
+    """
+    Uses the test set to calculate the accuracy of the trained models. Score is saved.
+    Prints the accuracy, confusion matrix, and classification report.
+    """
+
+    for name, model in models:
+        m = model
+        m.fit(X_train, y_train)
+        predictions = m.predict(X_test)
+        score = accuracy_score(y_test, predictions)
+        test_results.append((name, score))
+        print("\nAccuracy of the {}: {}".format(name, score))
+        print("\nConfusion matrix: ")
+        print(confusion_matrix(y_test, predictions))
+        print("\nClassification report: ")
+        print(classification_report(y_test, predictions))
+        print()
+
+
 # loading dataset directly from the UCI Machine Learning Repository
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
 names = ['sepal-length', 'sepal-width', 'petal-length', 'petal-width', 'class']  # features
-dataset = pandas.read_csv(url, names=names)
+data_set = pandas.read_csv(url, names=names)
 
 # Split-out validation dataset
-array = dataset.values
+array = data_set.values
 X = array[:, 0:4]  # data
 y = array[:, 4]  # labels
 validation_size = 0.20
@@ -24,78 +63,18 @@ seed = 7
 X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=validation_size,
                                                                     random_state=seed)
 # Algorithms
-models = [('LR', LogisticRegression()), ('LDA', LinearDiscriminantAnalysis()), ('KNN', KNeighborsClassifier()),
-          ('CART', DecisionTreeClassifier()), ('NB', GaussianNB()), ('SVM', SVC())]
+models = [('Logistic Regression', LogisticRegression()), ('Linear Discriminant Analysis', LinearDiscriminantAnalysis()),
+          ('K-Nearest Neighbors', KNeighborsClassifier()), ('Decision Tree Classifier', DecisionTreeClassifier()),
+          ('Gaussian Naive Bayes', GaussianNB()), ('Support Vector Machine', SVC())]
 
-results, names = [], []
+training_results, names = [], []
+test_results = []
 
-print("Training results mean and standard deviation: ")
-for name, model in models:
-    kfold = model_selection.KFold(n_splits=10, random_state=seed)  # 10-fold cross validation
-    cv_results = model_selection.cross_val_score(model, X_train, y_train, cv=kfold)
-    results.append(cv_results)
-    names.append(name)
-    print("{}: {} ({})".format(name, cv_results.mean(), cv_results.std()))
+train_models()
+test_models()
 
-# Make predictions on validation dataset
+test_results.sort(key=lambda x: x[1], reverse=True)
 
-lr = LogisticRegression()
-lr.fit(X_train, y_train)
-predictions_lr = lr.predict(X_test)
-print("\nAccuracy of the logistic regression model: {}".format(accuracy_score(y_test, predictions_lr)))
-print("\nConfusion matrix: ")
-print(confusion_matrix(y_test, predictions_lr))
-print("\nClassification report: ")
-print(classification_report(y_test, predictions_lr))
-print()
-
-lda = LinearDiscriminantAnalysis()
-lda.fit(X_train, y_train)
-predictions_lda = lda.predict(X_test)
-print("\nAccuracy of the linear discriminant analysis model: {}".format(accuracy_score(y_test, predictions_lda)))
-print("\nConfusion matrix: ")
-print(confusion_matrix(y_test, predictions_lda))
-print("\nClassification report: ")
-print(classification_report(y_test, predictions_lda))
-print()
-
-knn = KNeighborsClassifier()
-knn.fit(X_train, y_train)
-predictions_knn = knn.predict(X_test)
-print("\nAccuracy of the KNN model: {}".format(accuracy_score(y_test, predictions_knn)))
-print("\nConfusion matrix: ")
-print(confusion_matrix(y_test, predictions_knn))
-print("\nClassification report: ")
-print(classification_report(y_test, predictions_knn))
-print()
-
-dtc = DecisionTreeClassifier()
-dtc.fit(X_train, y_train)
-predictions_dtc = dtc.predict(X_test)
-print("\nAccuracy of the decision tree classifier model: {}".format(accuracy_score(y_test, predictions_dtc)))
-print("\nConfusion matrix: ")
-print(confusion_matrix(y_test, predictions_dtc))
-print("\nClassification report: ")
-print(classification_report(y_test, predictions_dtc))
-print()
-
-gnb = GaussianNB()
-gnb.fit(X_train, y_train)
-predictions_gnb = gnb.predict(X_test)
-print("\nAccuracy of the gaussian naive bayes model: {}".format(accuracy_score(y_test, predictions_gnb)))
-print("\nConfusion matrix: ")
-print(confusion_matrix(y_test, predictions_gnb))
-print("\nClassification report: ")
-print(classification_report(y_test, predictions_gnb))
-print()
-
-svm = SVC()
-svm.fit(X_train, y_train)
-predictions_svm = svm.predict(X_test)
-print("\nAccuracy of the SVM model: {}".format(accuracy_score(y_test, predictions_svm)))
-print("\nConfusion matrix: ")
-print(confusion_matrix(y_test, predictions_svm))
-print("\nClassification report: ")
-print(classification_report(y_test, predictions_svm))
-
-
+print("Results from best to worst: ")
+for n, v in test_results:
+    print("Model: {}, Accuracy: {}".format(n, v))
