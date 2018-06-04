@@ -9,7 +9,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 
-def train_models():
+def build_and_evaluate_models():
 
     """
     Trains the models on test sets using 10-fold cross validation
@@ -17,7 +17,7 @@ def train_models():
     Prints mean and standard deviation for the score
     """
 
-    print("Training results mean and standard deviation: ")
+    print("Training results, mean, and standard deviation: ")
     for name, model in models:
         kfold = model_selection.KFold(n_splits=10, random_state=seed)  # 10-fold cross validation
         cv_results = model_selection.cross_val_score(model, X_train, y_train, cv=kfold)
@@ -29,7 +29,7 @@ def train_models():
 def test_models():
 
     """
-    Uses the test set to calculate the accuracy of the trained models. Score is saved.
+    Uses the test set to calculate the accuracy of the trained models. Score is saved in a list.
     Prints the accuracy, confusion matrix, and classification report.
     """
 
@@ -70,7 +70,7 @@ models = [('Logistic Regression', LogisticRegression()), ('Linear Discriminant A
 training_results, names = [], []
 test_results = []
 
-train_models()
+build_and_evaluate_models()
 test_models()
 
 test_results.sort(key=lambda x: x[1], reverse=True)
