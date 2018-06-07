@@ -9,7 +9,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 
-def build_and_evaluate_models():
+def evaluate_models():
 
     """
     Trains the models on test sets using 10-fold cross validation
@@ -17,16 +17,19 @@ def build_and_evaluate_models():
     Prints mean and standard deviation for the score
     """
 
-    print("Training results, mean, and standard deviation: ")
+    print("Training results, mean, and standard deviation: \n")
     for name, model in models:
-        kfold = model_selection.KFold(n_splits=10, random_state=seed)  # 10-fold cross validation
+        # Creates 10 folds, each fold is used once for validation while the other 9 are used for training
+        kfold = model_selection.KFold(n_splits=10)
+        # Evaluates score by cross validation. model is the classifier, X_train is the data to fit,
+        # y_train is the target data to predict, and cv=kfold is an iterable yielding train/test splits
         cv_results = model_selection.cross_val_score(model, X_train, y_train, cv=kfold)
         training_results.append(cv_results)
         names.append(name)
         print("{}: {} ({})".format(name, cv_results.mean(), cv_results.std()))
 
 
-def test_models():
+def train_and_test_models():
 
     """
     Uses the test set to calculate the accuracy of the trained models. Score is saved in a list.
@@ -35,11 +38,15 @@ def test_models():
 
     for name, model in models:
         m = model
+        # X_train is the training vectors, y_train is the target values/labels
         m.fit(X_train, y_train)
+        # Performs prediction on the test vectors, and returns a list
         predictions = m.predict(X_test)
+        # Computes the subset accuracy as a float
+        # y_test is the true labels, predictions are the predicted values.
         score = accuracy_score(y_test, predictions)
         test_results.append((name, score))
-        print("\nAccuracy of the {}: {}".format(name, score))
+        print("\n\nAccuracy of the {}: {}".format(name, score))
         print("\nConfusion matrix: ")
         print(confusion_matrix(y_test, predictions))
         print("\nClassification report: ")
@@ -54,15 +61,14 @@ data_set = pandas.read_csv(url, names=names)
 
 # Split-out validation dataset
 array = data_set.values
-X = array[:, 0:4]  # data
+X = array[:, 0:4]  # data/features
 y = array[:, 4]  # labels
-validation_size = 0.20
-seed = 7
+test_size = 0.20
 
-# Splitting dataset into training and test set (X) with corresponding labels (y)
-X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=validation_size,
-                                                                    random_state=seed)
-# Algorithms
+# Splitting dataset into training and test set with corresponding labels
+X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=test_size)
+
+# Models
 models = [('Logistic Regression', LogisticRegression()), ('Linear Discriminant Analysis', LinearDiscriminantAnalysis()),
           ('K-Nearest Neighbors', KNeighborsClassifier()), ('Decision Tree Classifier', DecisionTreeClassifier()),
           ('Gaussian Naive Bayes', GaussianNB()), ('Support Vector Machine', SVC())]
@@ -70,8 +76,8 @@ models = [('Logistic Regression', LogisticRegression()), ('Linear Discriminant A
 training_results, names = [], []
 test_results = []
 
-build_and_evaluate_models()
-test_models()
+evaluate_models()
+train_and_test_models()
 
 test_results.sort(key=lambda x: x[1], reverse=True)
 
