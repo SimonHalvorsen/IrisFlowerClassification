@@ -1,7 +1,5 @@
 # IrisFlowerClassification
 
-The Hello World of Machine Learning
-
 Comparing the following machine learning models on the iris dataset using 10-fold cross validation:
 
 * Logistic Regression
